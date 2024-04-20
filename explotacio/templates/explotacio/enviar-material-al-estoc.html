@@ -1,0 +1,62 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% load pcr_tags %}
+
+{% block title %}Enviar material a l'estoc{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="stylesheet" href="/static/admin/css/base.css">
+  <link rel="stylesheet" href="/static/admin/css/dark_mode.css">
+  <link rel="stylesheet" href="/static/admin/css/forms.css">
+  <link rel="stylesheet" href="/static/admin/css/responsive.css">
+
+  <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      var input = document.getElementById('quantitat');
+      console.log("input.value:", input.value, input)
+      input.value = input.value.replace(',', '.');
+      input.focus();
+      input.select();
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+  <h1>Enviar material a l'estoc</h1>
+
+  <form action="/explotacio/enviar-material-al-estoc/" method="POST">
+    {% csrf_token %}
+
+    <!-- C a p a c i t a t s  -->
+
+    <div class="form-group">
+      <label for="material">Capacitats</label>
+      <select class="form-control" id="capacitat" name="capacitat_id">
+        {% for capacitat in capacitats %}
+          <option value="{{ capacitat.id }}">{{ capacitat.nom }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <br />
+
+    <!-- I d   d e   l a   L i n i a  EntradesDeMaterial  -->
+    <input type="hidden" name="linia_id" value="{{ linia.id }}">
+
+    <!-- Q u a n t i t a t  -->
+    <div class="form-group">
+      <label for="quantitat">Quantitat</label>
+      <input type="number" class="form-control" name="quantitat" id="quantitat" value="{{ quantitat|floatformat:'2'|replace_comma  }}">
+    </div>
+    <!--div class="form-group">
+      <label for="data">Data</label>
+      <input type="date" class="form-control" id="data">
+    </div-->
+    <br/>
+    <div class="submit-row">
+      <input type="submit" class="btn btn-primary" value="Crear l'entrada de material">
+    </div>
+  </form>
+{% endblock content %}
