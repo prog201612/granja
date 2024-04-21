@@ -24,10 +24,10 @@ class ProveidorAdmin(admin.ModelAdmin):
 
 @admin.register(models.ArticlesProveidor)
 class ArticlesProveidorAdmin(admin.ModelAdmin):
-    list_display = ('proveidor', 'nom', 'unitat_de_mesura', 'tipus', 'preu', 'actiu', 'creat_el_dia', 'modificat_el_dia')
-    list_filter = ('actiu', 'creat_el_dia', 'modificat_el_dia')
+    list_display = ('proveidor', 'nom', 'unitat_de_mesura', 'tipus', 'preu', 'actiu') # , 'creat_el_dia', 'modificat_el_dia'
+    list_filter = ('actiu','tipus') # 'creat_el_dia', 'modificat_el_dia'
     search_fields = ('proveidor__persona_legal__nom', 'nom', 'categoria_corral__nom')
-    date_hierarchy = 'creat_el_dia'
+    # date_hierarchy = 'creat_el_dia'
 
 
 # C o m a n d a   d e l   p r o v e ï d o r
@@ -99,12 +99,21 @@ class ComandesProveidorAdmin(admin.ModelAdmin):
     date_hierarchy = 'creat_el_dia'
     inlines = [DetallComandaProveidorInline, DetallComandaProveidorProcessadaInline,]
 
+    # D e f a u l t   F i l t e r
+
+    def changelist_view(self, request, *args, **kwargs):
+        if "actiu__exact" not in request.build_absolute_uri():
+            url = reverse('admin:%s_%s_changelist' % (self.model._meta.app_label, self.model._meta.model_name))
+            return HttpResponseRedirect("%s?%s" % (url, "actiu__exact=1")) #
+        return super().changelist_view(request, *args, **kwargs)
+
+
 # D e t a l l   d e   l a   c o m a n d a   d e l   p r o v e ï d o r
 
 @admin.register(models.DetallComandaProveidor)
 class DetallComandaProveidorAdmin(admin.ModelAdmin):
     list_display = ('comanda', 'article', 'quantitat', 'actiu', 'creat_el_dia', 'modificat_el_dia')
-    list_filter = ('actiu', 'creat_el_dia', 'modificat_el_dia', 'processada')
+    list_filter = ('processada', 'creat_el_dia', 'modificat_el_dia') # 'actiu', 
     search_fields = ('comanda__proveidor__persona_legal__nom', 'article__nom')
     date_hierarchy = 'creat_el_dia'
     actions = ['crear_entrades_de_material',]

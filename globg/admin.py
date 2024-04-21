@@ -11,6 +11,7 @@ class TipusProducteAdmin(admin.ModelAdmin):
     list_display = ('nom', 'tipus_capacitat')
     ordering = ['nom']
     list_filter = ('tipus_capacitat',)
+    search_fields = ['nom']
 
 # P e r s o n a   L e g a l
 
