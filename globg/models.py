@@ -16,10 +16,13 @@ class PCRBaseModel(models.Model):
 
 # ----------------------------------------------
 
+CAPACITAT_TIPUS_CORRAL = 'co'
+CAPACITAT_TIPUS_ALIMENT = 'al'
+CAPACITAT_TIPUS_REBUIG = 're'
 CAPACITAT_TIPUS = (
-    ('co', 'Corral'),
-    ('al', 'Aliment'),
-    ('re', 'Rebuig'),
+    (CAPACITAT_TIPUS_CORRAL, 'Corral'),
+    (CAPACITAT_TIPUS_ALIMENT, 'Aliment'),
+    (CAPACITAT_TIPUS_REBUIG, 'Rebuig'),
 )
 
 class Explotacio(PCRBaseModel):

@@ -1,7 +1,7 @@
 from django.db import models
-from globg.models import PCRBaseModel
 from django.utils import timezone
 
+from globg.models import PCRBaseModel
 from globg.models import CAPACITAT_TIPUS
 
 MESURES = (
@@ -32,6 +32,7 @@ class ArticlesProveidor(PCRBaseModel):
     #categoria_corral = models.ForeignKey('globg.CategoriaCorral', on_delete=models.SET_NULL, blank=True, null=True)
     tipus = models.ForeignKey('globg.TipusProducte', on_delete=models.SET_NULL, blank=True, null=True)
     preu = models.DecimalField(max_digits=8, decimal_places=2)
+    preu_venda = models.DecimalField(max_digits=8, decimal_places=2)
 
     def __str__(self):        
         return self.nom
@@ -76,6 +77,7 @@ class EntradesDeMaterial(PCRBaseModel):
     detall_comanda_proveidor = models.ForeignKey(DetallComandaProveidor, on_delete=models.CASCADE)
     quantitat = models.DecimalField(max_digits=8, decimal_places=2)
     assignats_a_corral = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    article = models.ForeignKey(ArticlesProveidor, on_delete=models.CASCADE)
     # quan quantitat = assignats_a_corral (Capacitat de tipus corral), posarem actiu = False
 
     class Meta:
@@ -92,7 +94,7 @@ class Capacitat(PCRBaseModel):
     descripcio = models.TextField("Descripció", blank=True, null=True)
 
     def __str__(self):        
-        return f"{self.nom} - {self.get_tipus_display()} - {self.capacitat}"
+        return f"{self.nom} - {self.get_tipus_display()}"
     
     class Meta:
         verbose_name = "Capacitat"
@@ -110,9 +112,13 @@ class CapacitatEstoc(PCRBaseModel):
     quantitat = models.DecimalField(max_digits=8, decimal_places=2)
     # El tipus_producte té el camp tipus_capacitat, i ha de coincidir amb el tipus de la capacitat
     tipus_producte = models.ForeignKey('globg.TipusProducte', on_delete=models.CASCADE, blank=True, null=True)
+    article = models.ForeignKey(ArticlesProveidor, on_delete=models.CASCADE)
+
+    def article_nom(self):
+        return "" if not self.article else self.article.nom
 
     def __str__(self):        
-        return f"{self.capacitat.nom} - {self.capacitat.tipus} - {self.capacitat.capacitat}"
+        return f"{self.capacitat.nom} - {self.article.nom} - {self.tipus_producte.nom}"
     
     class Meta:
         verbose_name = "Capacitat estoc"

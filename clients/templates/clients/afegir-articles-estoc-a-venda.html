@@ -1,0 +1,50 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Afegir articles de l'estoc a la venda{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="stylesheet" href="/static/admin/css/base.css">
+  <link rel="stylesheet" href="/static/admin/css/dark_mode.css">
+  <link rel="stylesheet" href="/static/admin/css/forms.css">
+  <link rel="stylesheet" href="/static/admin/css/responsive.css">
+
+  <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      var input = document.getElementById('quantitat');
+      console.log("input.value:", input.value, input)
+      input.value = input.value.replace(',', '.');
+      input.focus();
+      input.select();
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+<h1>Afegir articles de l'estoc a la venda</h1>
+
+<form action="/clients/afegir-articles-estoc-a-venda/" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="venda_id" value="{{ venda.id }}">
+    <fieldset class="module aligned ">
+    {% for estoc in capacitat_estoc %}
+    <div class="form-row">
+        <div class="flex-container">
+            <label for="material">{{ estoc }}, <b>Estoc</b>: {{ estoc.quantitat }}</label>
+            <div class="related-widget-wrapper">
+                <input type="number" name="quantitat_{{ estoc.id }}">
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    </fieldset>
+    <br/>
+    <div class="submit-row">
+      <input type="submit" class="btn btn-primary" value="Afegir les línies de venda">
+    </div>
+</form>
+
+{% endblock content %}

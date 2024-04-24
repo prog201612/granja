@@ -24,6 +24,7 @@ def nova_entrada_de_material(request):
         # creem la nova entrada de material
         entrada = models.EntradesDeMaterial.objects.create(
             detall_comanda_proveidor = linia,
+            article = linia.article,
             quantitat = quantitat
         )
         linia.processada = True
@@ -59,6 +60,9 @@ def enviar_material_al_estoc(request):
             messages.error(request, 'La quantitat introduïda mes la quantitat assignada a un corral no pot ser superior a la quantitat de la comanda')
             return render(request, 'explotacio/enviar-material-al-estoc.html', {'linia': linia, 'capacitats': capacitats})
 
+        if not capacitat_id:
+            messages.error(request, 'Selecciona una capacitat, si no n\'hi ha cap, crea una nova capacitat')
+            return render(request, 'explotacio/enviar-material-al-estoc.html', {'linia': linia, 'capacitats': capacitats})
         # B D
 
         # creem la nova entrada d'estoc
@@ -66,7 +70,8 @@ def enviar_material_al_estoc(request):
         # Si hi ha una entrada d'estoc per aquest tipus de producte i capacitat, l'afegim a la mateixa entrada
         entrada = models.CapacitatEstoc.objects.filter(
             capacitat = capacitat,
-            tipus_producte = linia.detall_comanda_proveidor.article.tipus
+            article = linia.detall_comanda_proveidor.article,
+            #tipus_producte = linia.detall_comanda_proveidor.article.tipus
         ).first()
         if entrada:
             entrada.quantitat += quantitat
@@ -75,7 +80,8 @@ def enviar_material_al_estoc(request):
             entrada = models.CapacitatEstoc.objects.create(
                 capacitat = capacitat,
                 quantitat = quantitat,
-                tipus_producte = linia.detall_comanda_proveidor.article.tipus
+                tipus_producte = linia.detall_comanda_proveidor.article.tipus,
+                article = linia.detall_comanda_proveidor.article
             )
             
         # Actualitzem l'entrada de material
@@ -122,7 +128,8 @@ def moure_estoc_entre_capacitats_del_mateix_tipus(request):
         # Si hi ha una entrada d'estoc per aquest tipus de producte i capacitat, l'afegim a la mateixa entrada
         estoc = models.CapacitatEstoc.objects.filter(
             capacitat = capacitat,
-            tipus_producte = linia.tipus_producte
+            article = linia.article,
+            #tipus_producte = linia.tipus_producte
         ).first()
         if estoc:
             estoc.quantitat += quantitat
@@ -132,7 +139,8 @@ def moure_estoc_entre_capacitats_del_mateix_tipus(request):
             estoc = models.CapacitatEstoc.objects.create(
                 capacitat = capacitat,
                 quantitat = quantitat,
-                tipus_producte = linia.tipus_producte
+                tipus_producte = linia.tipus_producte,
+                article = linia.article
             )
 
         # Actualitzem l'estoc actual

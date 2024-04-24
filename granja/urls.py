@@ -17,14 +17,21 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic.base import RedirectView
+from django.conf import settings
 
 urlpatterns = [
+    path('clients/', include('clients.urls')),
     path('explotacio/', include('explotacio.urls')),
     path('', RedirectView.as_view(url='admin')),
     path('admin/', admin.site.urls),
 ]
 
+# Imatges en mode debug
+if settings.DEBUG:
+    from django.conf.urls.static import static
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+# Personalització de l'administració
 admin.site.site_title = u'VILARDELL'
 admin.site.site_header = u'VILARDELL'
 admin.site.index_title = u'Panell administratiu'

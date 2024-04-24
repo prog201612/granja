@@ -60,7 +60,9 @@ class DetallComandaProveidorInline(admin.TabularInline):
         if request.META['PATH_INFO'].endswith('/add/'):
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
         # Si s'està editant filtrem els articles que siguin del proveïdor de la comanda
-        proveidor_id = int(request.META['PATH_INFO'].rstrip('/').split('/')[-2])
+        comanda_id = int(request.META['PATH_INFO'].rstrip('/').split('/')[-2])
+        comanda = models.ComandesProveidor.objects.get(pk=comanda_id)
+        proveidor_id = comanda.proveidor.id
         if db_field.name == 'article':
             kwargs['queryset'] = models.ArticlesProveidor.objects.filter(proveidor=proveidor_id)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
@@ -116,7 +118,7 @@ class DetallComandaProveidorAdmin(admin.ModelAdmin):
     list_filter = ('processada', 'creat_el_dia', 'modificat_el_dia') # 'actiu', 
     search_fields = ('comanda__proveidor__persona_legal__nom', 'article__nom')
     date_hierarchy = 'creat_el_dia'
-    actions = ['crear_entrades_de_material',]
+    actions = ['crear_entrades_de_material', 'enviar_material_al_estoc',]
     #readonly_fields = ['comanda', 'article', 'processada']
 
     # R e a d o n l y
@@ -144,6 +146,31 @@ class DetallComandaProveidorAdmin(admin.ModelAdmin):
             return
         return render(request, 'explotacio/crear-entrades-de-material.html', {'linia': queryset[0]})
     crear_entrades_de_material.short_description = "Crear Entrades de Material"
+
+    def enviar_material_al_estoc(modeladmin, request, queryset):
+        """
+        Aquesta acció fa 2 feines a l'hora:
+        - crear_entrades_de_material
+        - enviar_material_al_estoc (de EntradesDeMaterialAdmin)
+        """
+        if len(queryset) != 1:
+            modeladmin.message_user(request, "Selecciona només una línia", level='WARNING')
+            return
+        elif queryset[0].processada == True:
+            modeladmin.message_user(request, "La línia ja ha estat processada", level='ERROR')
+            return
+        capacitats = models.Capacitat.objects.filter(tipus=queryset[0].article.tipus.tipus_capacitat)
+        quantitat = queryset[0].quantitat
+        entrada = models.EntradesDeMaterial.objects.create(
+            detall_comanda_proveidor = queryset[0],
+            article = queryset[0].article,
+            quantitat = quantitat
+        )
+        queryset[0].processada = True
+        queryset[0].save()
+        context = {'linia': entrada, 'capacitats': capacitats, 'quantitat': quantitat}
+        return render(request, 'explotacio/enviar-material-al-estoc.html', context)
+    enviar_material_al_estoc.short_description = "Enviar material al estoc"
 
     # D e f a u l t   F i l t e r
 
@@ -203,7 +230,7 @@ class CapacitatEstocInline(admin.TabularInline):
 @admin.register(models.Capacitat)
 class CapacitatAdmin(admin.ModelAdmin):
     list_display = ('nom', 'tipus', 'capacitat') # , 'creat_el_dia', 'modificat_el_dia'
-    list_filter = ('actiu', 'creat_el_dia', 'modificat_el_dia')
+    list_filter = ('tipus', 'actiu') # , 'creat_el_dia', 'modificat_el_dia'
     search_fields = ('corral__nom', 'article__nom')
     date_hierarchy = 'creat_el_dia'
     inlines = [CapacitatEstocInline,]
@@ -213,8 +240,8 @@ class CapacitatAdmin(admin.ModelAdmin):
 
 @admin.register(models.CapacitatEstoc)
 class CapacitatEstocAdmin(admin.ModelAdmin):
-    list_display = ('capacitat', 'quantitat', 'tipus_producte')
-    list_filter = ('capacitat__tipus', 'actiu', 'creat_el_dia', 'modificat_el_dia')
+    list_display = ('capacitat', 'article_nom', 'quantitat', )
+    list_filter = ('capacitat__tipus', 'actiu', ) # 'creat_el_dia', 'modificat_el_dia'
     search_fields = ('capacitat__nom', 'tipus_producte__nom')
     date_hierarchy = 'creat_el_dia'
     actions = ['moure_estoc_entre_capacitats_del_mateix_tipus',]

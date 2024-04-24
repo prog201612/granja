@@ -9,78 +9,72 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ('globg', '0001_initial'),
+        ('explotacio', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Explotacio',
+            name='Clients',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('actiu', models.BooleanField(default=True)),
                 ('creat_el_dia', models.DateTimeField(auto_now_add=True)),
                 ('modificat_el_dia', models.DateTimeField(auto_now=True)),
-                ('nom', models.CharField(max_length=100)),
-                ('descripcio', models.TextField()),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='PersonaLegal',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('actiu', models.BooleanField(default=True)),
-                ('creat_el_dia', models.DateTimeField(auto_now_add=True)),
-                ('modificat_el_dia', models.DateTimeField(auto_now=True)),
-                ('nom', models.CharField(max_length=100)),
-                ('dni_nif', models.CharField(max_length=20)),
-            ],
-            options={
-                'verbose_name': 'Persona Legal',
-                'verbose_name_plural': 'Persones Legals',
-                'ordering': ['nom'],
-            },
-        ),
-        migrations.CreateModel(
-            name='TipusProducte',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('actiu', models.BooleanField(default=True)),
-                ('creat_el_dia', models.DateTimeField(auto_now_add=True)),
-                ('modificat_el_dia', models.DateTimeField(auto_now=True)),
-                ('nom', models.CharField(max_length=100)),
-                ('tipus_capacitat', models.CharField(choices=[('co', 'Corral'), ('al', 'Aliment'), ('re', 'Rebuig')], max_length=2)),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='Telefon',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('actiu', models.BooleanField(default=True)),
-                ('creat_el_dia', models.DateTimeField(auto_now_add=True)),
-                ('modificat_el_dia', models.DateTimeField(auto_now=True)),
-                ('telefon', models.CharField(max_length=20, verbose_name='Telèfon')),
-                ('descripcio', models.CharField(max_length=100, verbose_name='Descripció')),
+                ('descripcio', models.TextField(blank=True, null=True, verbose_name='Descripció')),
                 ('persona_legal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='globg.personalegal')),
             ],
             options={
-                'abstract': False,
+                'verbose_name': 'Client',
+                'verbose_name_plural': 'Clients',
+                'ordering': ['persona_legal__nom'],
             },
         ),
         migrations.CreateModel(
-            name='Email',
+            name='Vendes',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('actiu', models.BooleanField(default=True)),
                 ('creat_el_dia', models.DateTimeField(auto_now_add=True)),
                 ('modificat_el_dia', models.DateTimeField(auto_now=True)),
-                ('email', models.EmailField(max_length=254)),
-                ('descripcio', models.CharField(max_length=100, verbose_name='Descripció')),
-                ('persona_legal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='globg.personalegal')),
+                ('data_venta', models.DateField()),
+                ('observacions', models.TextField(blank=True, null=True, verbose_name='Observacions')),
+                ('client', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='clients.clients')),
+            ],
+            options={
+                'verbose_name': 'Venda',
+                'verbose_name_plural': 'Ventes',
+                'ordering': ['-data_venta'],
+            },
+        ),
+        migrations.CreateModel(
+            name='DetallVenda',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('actiu', models.BooleanField(default=True)),
+                ('creat_el_dia', models.DateTimeField(auto_now_add=True)),
+                ('modificat_el_dia', models.DateTimeField(auto_now=True)),
+                ('quantitat', models.DecimalField(decimal_places=2, max_digits=8)),
+                ('article', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='explotacio.articlesproveidor')),
+                ('venda', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='clients.vendes')),
+            ],
+            options={
+                'verbose_name': 'Detall de la venda',
+                'verbose_name_plural': 'Detalls de la venda',
+                'ordering': ['venda__data_venta'],
+            },
+        ),
+        migrations.CreateModel(
+            name='Defuncions',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('actiu', models.BooleanField(default=True)),
+                ('creat_el_dia', models.DateTimeField(auto_now_add=True)),
+                ('modificat_el_dia', models.DateTimeField(auto_now=True)),
+                ('data_defuncio', models.DateField()),
+                ('tipus', models.CharField(choices=[('co', 'Corral'), ('es', 'Escorxador'), ('ce', 'Corral Escorxador'), ('tr', 'Transport'), ('al', 'Altres')], max_length=2)),
+                ('justificant', models.FileField(upload_to='defuncions/')),
+                ('detall_venda', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='clients.detallvenda')),
             ],
             options={
                 'abstract': False,
