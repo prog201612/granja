@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 # B a s e   M o d e l   U F K   (UserForeignKey)
 
@@ -62,3 +63,18 @@ class TipusProducte(PCRBaseModel):
 
     def __str__(self):
         return self.nom + ' - ' + self.get_tipus_capacitat_display()
+
+
+class Documentacio(PCRBaseModel):
+    nom = models.CharField(max_length=100)
+    descripcio = models.TextField(blank=True, null=True)
+    caduca_el_dia = models.DateField(default=timezone.now)
+    document = models.FileField(upload_to='documents/', blank=True, null=True)
+
+    def __str__(self):
+        return self.nom
+    
+    class Meta:
+        verbose_name = "Documentació"
+        verbose_name_plural = "Documentacions"
+        ordering = ['nom']

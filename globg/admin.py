@@ -31,3 +31,9 @@ class PersonaLegalAdmin(admin.ModelAdmin):
     inlines = [EmailInline, TelefonInline]
     search_fields = ['nom', 'dni_nif']
 
+
+# D o c u m e n t a c i ó
+
+@admin.register(models.Documentacio)
+class DocumentacioAdmin(admin.ModelAdmin):
+    list_display = ('nom', 'descripcio', 'caduca_el_dia')
