@@ -23,7 +23,7 @@ class AdvertenciaCaducitatMiddleware:
         if request.user.is_authenticated and request.user.is_staff and request.path_info.endswith('admin/'):
             data_limit = timezone.now().date() + timedelta(days=30)
             document = Documentacio.objects.filter(caduca_el_dia__lte=data_limit).first()
-            print(data_limit, document)
+            # print(data_limit, document)
             if document:
                 msg = f"El document <a href='/admin/globg/documentacio/{document.id}/change/'>{document.nom}</a> caduca el dia {document.caduca_el_dia}. "
                 messages.warning(request, mark_safe(msg))
