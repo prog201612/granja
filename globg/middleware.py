@@ -17,7 +17,7 @@ class AdvertenciaCaducitatMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
+        # response = self.get_response(request) NOOO, O ES DUPLIQUEM LES DADES AL INSERTAR
 
         # Només ho mostrem per usuaris autenticats del staff a l'índex de l'admin
         if request.user.is_authenticated and request.user.is_staff and request.path_info.endswith('admin/'):
