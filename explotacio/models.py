@@ -30,7 +30,7 @@ class ArticlesProveidor(PCRBaseModel):
     descripcio = models.TextField("Descripció", blank=True, null=True)
     unitat_de_mesura = models.CharField(max_length=2, choices=MESURES, default='u')
     #categoria_corral = models.ForeignKey('globg.CategoriaCorral', on_delete=models.SET_NULL, blank=True, null=True)
-    tipus = models.ForeignKey('globg.TipusProducte', on_delete=models.SET_NULL, blank=True, null=True)
+    tipus = models.ForeignKey('globg.TipusProducte', on_delete=models.CASCADE)
     preu = models.DecimalField(max_digits=8, decimal_places=2)
     preu_venda = models.DecimalField(max_digits=8, decimal_places=2)
 

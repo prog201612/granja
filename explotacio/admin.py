@@ -199,6 +199,9 @@ class EntradesDeMaterialAdmin(admin.ModelAdmin):
         elif queryset[0].quantitat == queryset[0].assignats_a_corral:
             modeladmin.message_user(request, "La línia ja ha estat processada", level='ERROR')
             return
+        elif queryset[0].detall_comanda_proveidor.article.tipus is None:
+            modeladmin.message_user(request, "L'article no té un tipus seleccionat, modifica l'article", level='ERROR')
+            return
         capacitats = models.Capacitat.objects.filter(tipus=queryset[0].detall_comanda_proveidor.article.tipus.tipus_capacitat)
         quantitat = queryset[0].quantitat - queryset[0].assignats_a_corral
         context = {'linia': queryset[0], 'capacitats': capacitats, 'quantitat': quantitat}
