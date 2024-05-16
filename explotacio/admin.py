@@ -55,16 +55,17 @@ class DetallComandaProveidorInline(admin.TabularInline):
 
     # Ens cal filtrar que els articles siguin del proveïdor de la comanda
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        print(request.META['PATH_INFO'])
         # si el path acaba amb '/add/' és que estem afegint una nova comanda
         if request.META['PATH_INFO'].endswith('/add/'):
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
         # Si s'està editant filtrem els articles que siguin del proveïdor de la comanda
         comanda_id = int(request.META['PATH_INFO'].rstrip('/').split('/')[-2])
         comanda = models.ComandesProveidor.objects.get(pk=comanda_id)
         proveidor_id = comanda.proveidor.id
         if db_field.name == 'article':
             kwargs['queryset'] = models.ArticlesProveidor.objects.filter(proveidor=proveidor_id)
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -159,6 +160,8 @@ class DetallComandaProveidorAdmin(admin.ModelAdmin):
         elif queryset[0].processada == True:
             modeladmin.message_user(request, "La línia ja ha estat processada", level='ERROR')
             return
+        
+        # Creem una entrada de material
         capacitats = models.Capacitat.objects.filter(tipus=queryset[0].article.tipus.tipus_capacitat)
         quantitat = queryset[0].quantitat
         entrada = models.EntradesDeMaterial.objects.create(
@@ -166,8 +169,11 @@ class DetallComandaProveidorAdmin(admin.ModelAdmin):
             article = queryset[0].article,
             quantitat = quantitat
         )
+
+        # Actualitzem el DetallComandaProveidor per marcar-lo com a processat
         queryset[0].processada = True
         queryset[0].save()
+
         context = {'linia': entrada, 'capacitats': capacitats, 'quantitat': quantitat}
         return render(request, 'explotacio/enviar-material-al-estoc.html', context)
     enviar_material_al_estoc.short_description = "Enviar material al estoc"
@@ -190,6 +196,8 @@ class EntradesDeMaterialAdmin(admin.ModelAdmin):
     search_fields = ('detall_comanda_proveidor__article__nom', 'detall_comanda_proveidor__comanda__proveidor__persona_legal__nom')
     date_hierarchy = 'creat_el_dia'
     actions = ['enviar_material_al_estoc',]
+
+    # A c t i o n s
 
     def enviar_material_al_estoc(modeladmin, request, queryset):
         # Ens cal una acció per enviar el material entrat cap a l'estoc d'alguna capacitat
@@ -250,8 +258,6 @@ class CapacitatEstocAdmin(admin.ModelAdmin):
     actions = ['moure_estoc_entre_capacitats_del_mateix_tipus',]
 
     # A c c i o n s
-
-    # TODO: Traspas de material entre estocs
 
     def moure_estoc_entre_capacitats_del_mateix_tipus(modeladmin, request, queryset):
         # Ens cal una acció per moure material entre capacitats d'estoc del mateix tipus
