@@ -1,9 +1,13 @@
 
 from django.apps import apps
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import permission_classes, api_view, action
 from rest_framework.response import Response
+from rest_framework.parsers import FileUploadParser, MultiPartParser, FormParser
+from rest_framework.views import APIView
 
 from api.globg import serializers
 from globg import models
@@ -99,7 +103,8 @@ class PCRModelViewSet(viewsets.ModelViewSet):
         count = 0
         if filter:
             count = self.queryset.model.objects.filter(**filter_dict).count()
-        count = self.queryset.model.objects.all().count()
+        else:
+            count = self.queryset.model.objects.all().count()
 
         return Response({'count': count})
 
@@ -109,3 +114,70 @@ class PCRModelViewSet(viewsets.ModelViewSet):
 class PersonaLegalViewSet(PCRModelViewSet):
     queryset = models.PersonaLegal.objects.all()
     serializer_class = serializers.PersonaLegalSerializer
+
+
+@permission_classes((permissions.DjangoModelPermissions,))
+class TelefonViewSet(PCRModelViewSet):
+    queryset = models.Telefon.objects.all()
+    serializer_class = serializers.TelefonSerializer
+
+
+@permission_classes((permissions.DjangoModelPermissions,))
+class EmailViewSet(PCRModelViewSet):
+    queryset = models.Email.objects.all()
+    serializer_class = serializers.EmailSerializer
+
+    """ DE MOMENT NO HO UTILITZEM
+    @action(detail=False, methods=['get'])
+    def x_persona_legal(self, request, *args, **kwargs):
+        # /x_persona_legal/?persona_legal_id=1
+        persona_legal_id = request.query_params.get('persona_legal_id', None)
+        persona_legal = get_object_or_404(models.PersonaLegal, pk=persona_legal_id)
+        if persona_legal:
+            return Response(models.Email.objects.filter(persona_legal=persona_legal))
+        return Response({'error': 'no hi ha dades de la persona_legal'}, status=400)
+    """
+
+# T i p u s   P r o d u c t e
+
+@permission_classes((permissions.DjangoModelPermissions,))
+class TipusProducteViewSet(PCRModelViewSet):
+    queryset = models.TipusProducte.objects.all()
+    serializer_class = serializers.TipusProducteSerializer
+
+# D o c u m e n t a c i ó
+
+@permission_classes((permissions.DjangoModelPermissions,))
+class DocumentacioViewSet(PCRModelViewSet):
+    queryset = models.Documentacio.objects.all()
+    serializer_class = serializers.DocumentacioSerializer
+
+
+# U p l o a d   I m a g e
+
+@permission_classes((permissions.IsAuthenticated,))
+class FileUploadView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
+    def put(self, request, filename, format=None):
+        # filename = "app_model-id-field"
+        print("FileUploadView", filename, request.data)
+
+        filename_array = filename.split('-')
+        field = filename_array[-1:][0]
+        id = filename_array[-2:-1][0]
+        app_model = filename_array[-3:-2][0]
+
+        print(field, id, app_model, format)
+        returned_filename = ""
+
+        if app_model == "globgdocumentacio":
+            from globg.models import Documentacio
+            documentacio = get_object_or_404(Documentacio, pk=id)
+            #material_reference.image.delete(save=True) # Al copiar un item s'eliminaria el  del original
+            #material_reference.save()
+            documentacio.document = request.data['file'] # request.FILES['file']
+            documentacio.save()
+            returned_filename = documentacio.document.url
+
+        return JsonResponse({'filename': returned_filename})

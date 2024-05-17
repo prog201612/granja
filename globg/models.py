@@ -71,6 +71,9 @@ class Documentacio(PCRBaseModel):
     caduca_el_dia = models.DateField(default=timezone.now)
     document = models.FileField(upload_to='documents/', blank=True, null=True)
 
+    def document_url(self):
+        return self.document.url if self.document else None
+
     def __str__(self):
         return self.nom
     
